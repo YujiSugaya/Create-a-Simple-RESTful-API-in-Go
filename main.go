@@ -10,12 +10,18 @@ import (
 )
 
 type Article struct {
+	Id      string `json:"Id"`
 	Title   string `json:"Title"`
-	Desc    string `json:"desc`
+	Desc    string `json:"desc"`
 	Content string `json:"content"`
 }
 
 type Articles []Article
+
+var articles = Articles{
+	Article{Id: "1", Title: "Hello", Desc: "Article Description", Content: "Article Content"},
+	Article{Id: "2", Title: "Hello 2", Desc: "Article Description", Content: "Article Content"},
+}
 
 func allArticles(w http.ResponseWriter, r *http.Request) {
 	articles := Articles{
@@ -24,6 +30,20 @@ func allArticles(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Endpoint Hit: All Articles Endpoint")
 	json.NewEncoder(w).Encode(articles)
+}
+
+func returnSingleArticle(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	key := vars["id"]
+
+	fmt.Fprintf(w, "Key: "+key)
+
+	for _, article := range articles {
+		if article.Id == key {
+			json.NewEncoder(w).Encode(article)
+		}
+	}
+
 }
 
 func testPostArticles(w http.ResponseWriter, r *http.Request) {
@@ -40,9 +60,12 @@ func handleRequests() {
 	myRouter.HandleFunc("/", homePage)
 	myRouter.HandleFunc("/articles", allArticles).Methods("GET")
 	myRouter.HandleFunc("/articles", testPostArticles).Methods("POST")
+	myRouter.HandleFunc("/article/{id}", returnSingleArticle)
 	log.Fatal(http.ListenAndServe(":8081", myRouter))
 }
 
 func main() {
+	fmt.Println("Rest API v2.0 - Mux Routers")
+
 	handleRequests()
 }
